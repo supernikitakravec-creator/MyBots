@@ -1,0 +1,40 @@
+# Основные зависимости бота
+python-telegram-bot==20.7
+aiohttp==3.9.1
+pyrogram==2.0.106
+TgCrypto==1.2.5
+qrcode==7.4.2
+Pillow==10.1.0
+
+# PostgreSQL и асинхронные базы данных
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# Redis для кэширования
+redis==5.0.1
+aioredis==2.0.1
+
+# Мониторинг и метрики
+prometheus-client==0.19.0
+sentry-sdk==1.39.2
+
+# Очереди задач
+celery==5.3.4
+kombu==5.3.4
+
+# Дополнительные утилиты
+python-dotenv==1.0.0
+pydantic==2.5.2
+httpx==0.25.2
+
+# Логирование и отладка
+structlog==23.2.0
+colorama==0.4.6
+
+# Безопасность
+cryptography==41.0.8
+bcrypt==4.1.2
+
+# Развертывание
+gunicorn==21.2.0
+uvloop==0.19.0  # Для лучшей производительности asyncio 

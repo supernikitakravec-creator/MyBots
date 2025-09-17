@@ -1,0 +1,31 @@
+# Dockerfile для Queue Workers
+FROM python:3.11-slim
+
+# Устанавливаем системные зависимости
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создаем пользователя для приложения
+RUN useradd --create-home --shell /bin/bash tggift
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем файл зависимостей
+COPY requirements_production.txt .
+
+# Устанавливаем Python зависимости
+RUN pip install --no-cache-dir -r requirements_production.txt
+
+# Копируем исходный код
+COPY . .
+
+# Создаем директории для логов
+RUN mkdir -p /app/logs && chown -R tggift:tggift /app
+
+# Переключаемся на пользователя приложения
+USER tggift
+
+# Команда запуска queue worker
+CMD ["python", "message_queue.py"] 

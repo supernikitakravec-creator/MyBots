@@ -1,0 +1,15 @@
+{
+    "users": {
+        "592900565": {
+            "first_name": "M4IST",
+            "gender": "male",
+            "fitness_level": "advanced"
+        }
+    },
+    "user_last_bot_message_id": {
+        "592900565": 400
+    },
+    "workout_counters": {},
+    "user_timers": {},
+    "timer_threads": {}
+}

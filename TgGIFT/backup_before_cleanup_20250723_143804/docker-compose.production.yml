@@ -1,0 +1,311 @@
+version: '3.8'
+
+services:
+  # База данных PostgreSQL
+  postgresql:
+    image: postgres:15-alpine
+    container_name: tggift-postgres
+    environment:
+      POSTGRES_DB: tggift
+      POSTGRES_USER: tggift_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tggift_user -d tggift"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis для кэширования
+  redis-cache:
+    image: redis:7-alpine
+    container_name: tggift-redis-cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_cache_data:/data
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis для очередей сообщений
+  redis-queue:
+    image: redis:7-alpine
+    container_name: tggift-redis-queue
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --port 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Load Balancer
+  nginx-lb:
+    image: nginx:alpine
+    container_name: tggift-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      - bot-worker-1
+      - bot-worker-2
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Bot Worker 1
+  bot-worker-1:
+    build: 
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: tggift-bot-worker-1
+    environment:
+      - WORKER_ID=bot_worker_1
+      - WORKER_TYPE=bot_handler
+      - WORKER_PORT=8001
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_QUEUE_HOST=redis-queue
+      - DB_HOST=postgresql
+      - DB_NAME=tggift
+      - DB_USER=tggift_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+    volumes:
+      - bot_logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Bot Worker 2
+  bot-worker-2:
+    build: 
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: tggift-bot-worker-2
+    environment:
+      - WORKER_ID=bot_worker_2
+      - WORKER_TYPE=bot_handler
+      - WORKER_PORT=8002
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_QUEUE_HOST=redis-queue
+      - DB_HOST=postgresql
+      - DB_NAME=tggift
+      - DB_USER=tggift_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+    volumes:
+      - bot_logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Queue Worker 1
+  queue-worker-1:
+    build: 
+      context: .
+      dockerfile: Dockerfile.queue
+    container_name: tggift-queue-worker-1
+    environment:
+      - WORKER_ID=queue_worker_1
+      - WORKER_TYPE=queue_worker
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_QUEUE_HOST=redis-queue
+      - DB_HOST=postgresql
+      - DB_NAME=tggift
+      - DB_USER=tggift_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+    volumes:
+      - queue_logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  # Queue Worker 2
+  queue-worker-2:
+    build: 
+      context: .
+      dockerfile: Dockerfile.queue
+    container_name: tggift-queue-worker-2
+    environment:
+      - WORKER_ID=queue_worker_2
+      - WORKER_TYPE=queue_worker
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_QUEUE_HOST=redis-queue
+      - DB_HOST=postgresql
+      - DB_NAME=tggift
+      - DB_USER=tggift_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+    volumes:
+      - queue_logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+
+  # Cluster Manager
+  cluster-manager:
+    build: 
+      context: .
+      dockerfile: Dockerfile.cluster
+    container_name: tggift-cluster-manager
+    environment:
+      - REDIS_CACHE_HOST=redis-cache
+      - REDIS_QUEUE_HOST=redis-queue
+      - DB_HOST=postgresql
+      - DB_NAME=tggift
+      - DB_USER=tggift_user
+      - DB_PASSWORD=${DB_PASSWORD}
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+      - LOAD_BALANCER_STRATEGY=consistent_hashing
+      - MAX_WORKERS=8
+      - AUTO_SCALE_WORKERS=true
+    volumes:
+      - cluster_logs:/app/logs
+      - ./config:/app/config:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      - bot-worker-1
+      - bot-worker-2
+      - queue-worker-1
+      - queue-worker-2
+
+  # Monitoring (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tggift-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  # Monitoring (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tggift-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - tggift-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+networks:
+  tggift-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_cache_data:
+    driver: local
+  redis_queue_data:
+    driver: local
+  bot_logs:
+    driver: local
+  queue_logs:
+    driver: local
+  cluster_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local 

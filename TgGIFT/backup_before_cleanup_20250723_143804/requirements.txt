@@ -1,0 +1,43 @@
+# Основные зависимости
+python-telegram-bot==20.7
+pyrogram==2.0.106
+tgcrypto==1.2.5
+python-dotenv==1.0.0
+aiofiles==23.2.1
+aiohttp==3.9.1
+asyncio-mqtt==0.16.1
+
+# Базы данных
+sqlite3  # Встроенная в Python
+psycopg2-binary==2.9.9  # Для PostgreSQL (опционально)
+
+# Веб и HTTP
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.4
+
+# Платежные системы
+aiohttp==3.9.1  # Для API запросов
+base64  # Встроенная в Python
+
+# QR коды и изображения
+qrcode[pil]==7.4.2
+Pillow==10.1.0
+
+# Криптография и безопасность
+cryptography==41.0.8
+
+# Логирование и мониторинг
+colorlog==6.8.0
+
+# Парсинг и работа с данными
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Утилиты
+schedule==1.2.0
+humanize==4.9.0
+
+# Разработка и тестирование (опционально)
+pytest==7.4.3
+pytest-asyncio==0.21.1 

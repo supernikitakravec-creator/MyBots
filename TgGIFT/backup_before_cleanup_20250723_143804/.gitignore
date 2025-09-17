@@ -1,0 +1,73 @@
+# Environment variables
+.env
+.env.*
+env_example_filled.txt
+
+# Logs
+*.log
+logs/
+bot.log
+error.log
+access.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+gift_bot.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Pyrogram session files
+*.session
+*.session-journal
+gift_bot_account.session*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+backup/
+*.backup
+*.bak
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Security
+*.key
+*.pem
+*.cert
+*.crt
+private/
+secrets/
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Production
+*.pid
+*.sock 

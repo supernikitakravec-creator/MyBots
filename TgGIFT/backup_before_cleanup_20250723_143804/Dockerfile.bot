@@ -1,0 +1,39 @@
+# Dockerfile для Bot Workers
+FROM python:3.11-slim
+
+# Устанавливаем системные зависимости
+RUN apt-get update && apt-get install -y \
+    curl \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создаем пользователя для приложения
+RUN useradd --create-home --shell /bin/bash tggift
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем файл зависимостей
+COPY requirements_complete.txt .
+
+# Устанавливаем Python зависимости
+RUN pip install --no-cache-dir -r requirements_complete.txt
+
+# Копируем исходный код
+COPY . .
+
+# Создаем директории для логов
+RUN mkdir -p /app/logs && chown -R tggift:tggift /app
+
+# Переключаемся на пользователя приложения
+USER tggift
+
+# Открываем порт для health check
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${WORKER_PORT:-8001}/health || exit 1
+
+# Команда запуска bot worker
+CMD ["python", "-m", "main_bot_worker"] 

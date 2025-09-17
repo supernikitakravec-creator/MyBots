@@ -1,0 +1,202 @@
+# =============================================================================
+# TgGIFT Bot - PRODUCTION Environment Configuration
+# ВНИМАНИЕ: ЭТО ПРОДАКШЕН КОНФИГ - ЗАМЕНИТЕ ВСЕ СЕКРЕТНЫЕ ДАННЫЕ!
+# =============================================================================
+
+# =============================================================================
+# ОСНОВНЫЕ НАСТРОЙКИ БОТА (ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ!)
+# =============================================================================
+BOT_TOKEN=your_new_production_bot_token_here
+ADMIN_ID=592900565
+BOT_USERNAME=your_production_bot_username
+WEBHOOK_URL=https://your-domain.com/webhook
+WEBHOOK_SECRET=your_secure_webhook_secret_token_here
+
+# =============================================================================
+# БАЗА ДАННЫХ POSTGRESQL
+# =============================================================================
+DB_HOST=postgresql
+DB_PORT=5432
+DB_NAME=tggift
+DB_USER=tggift_user
+DB_PASSWORD=your_secure_database_password_here
+DB_MAX_CONNECTIONS=20
+DB_MIN_CONNECTIONS=5
+DB_CONNECTION_TIMEOUT=30
+
+# =============================================================================
+# REDIS КЭШИРОВАНИЕ
+# =============================================================================
+REDIS_HOST=redis-cache
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=your_secure_redis_password_here
+REDIS_KEY_PREFIX=tggift
+REDIS_CONNECTION_TIMEOUT=5
+
+# Настройки кэша
+CACHE_DEFAULT_TTL=3600
+CACHE_USER_DATA_TTL=1800
+CACHE_SUBSCRIPTION_TTL=300
+CACHE_GIFT_DATA_TTL=900
+CACHE_PAYMENT_TTL=600
+
+# =============================================================================
+# REDIS ОЧЕРЕДИ СООБЩЕНИЙ
+# =============================================================================
+REDIS_QUEUE_HOST=redis-queue
+REDIS_QUEUE_PORT=6379
+REDIS_QUEUE_DB=1
+REDIS_QUEUE_PASSWORD=your_secure_redis_queue_password_here
+QUEUE_KEY_PREFIX=tggift:queue
+
+# =============================================================================
+# ЮКАССА (ОБНОВИТЬ ПРОДАКШЕН ДАННЫЕ!)
+# =============================================================================
+YOOKASSA_SHOP_ID=your_production_shop_id_here
+YOOKASSA_SECRET_KEY=your_production_secret_key_here
+YOOKASSA_WEBHOOK_URL=https://your-domain.com/webhook/yookassa
+YOOKASSA_RETURN_URL=https://t.me/your_production_bot
+YOOKASSA_TEST_MODE=false
+
+# =============================================================================
+# TON КОШЕЛЬКИ (НОВЫЕ ПРОДАКШЕН КОШЕЛЬКИ!)
+# =============================================================================
+TON_WALLET_1_ADDRESS=your_production_ton_wallet_1_here
+TON_WALLET_1_NAME=Основной продакшен кошелек
+TON_WALLET_1_ACTIVE=true
+
+TON_WALLET_2_ADDRESS=your_production_ton_wallet_2_here
+TON_WALLET_2_NAME=Резервный продакшен кошелек
+TON_WALLET_2_ACTIVE=true
+
+# =============================================================================
+# ДЕПОЗИТНЫЕ АККАУНТЫ (НОВЫЕ ПРОДАКШЕН АККАУНТЫ!)
+# =============================================================================
+# Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_API_ID=your_production_api_id_1_here
+DEPOSIT_ACCOUNT_1_API_HASH=your_production_api_hash_1_here
+DEPOSIT_ACCOUNT_1_PHONE=+7xxxxxxxxxx
+DEPOSIT_ACCOUNT_1_TON_WALLET=wallet_1
+DEPOSIT_ACCOUNT_1_NAME=Продакшен депозитный аккаунт 1
+DEPOSIT_ACCOUNT_1_ACTIVE=true
+DEPOSIT_ACCOUNT_1_MAX_PURCHASES=500
+
+# Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_API_ID=your_production_api_id_2_here
+DEPOSIT_ACCOUNT_2_API_HASH=your_production_api_hash_2_here
+DEPOSIT_ACCOUNT_2_PHONE=+7xxxxxxxxxx
+DEPOSIT_ACCOUNT_2_TON_WALLET=wallet_2
+DEPOSIT_ACCOUNT_2_NAME=Продакшен депозитный аккаунт 2
+DEPOSIT_ACCOUNT_2_ACTIVE=true
+DEPOSIT_ACCOUNT_2_MAX_PURCHASES=500
+
+# =============================================================================
+# БЕЗОПАСНОСТЬ И ШИФРОВАНИЕ
+# =============================================================================
+MASTER_KEY=your_256_bit_master_key_here
+ENCRYPTION_KEY=your_fernet_encryption_key_here
+JWT_SECRET=your_jwt_secret_key_here
+API_KEY_SALT=your_api_key_salt_here
+
+# =============================================================================
+# МОНИТОРИНГ И ЛОГИРОВАНИЕ
+# =============================================================================
+LOG_LEVEL=INFO
+LOG_FILE=/app/logs/bot.log
+LOG_MAX_SIZE=50485760
+LOG_BACKUP_COUNT=10
+
+# Мониторинг
+MONITORING_INTERVAL=30
+GIFT_CHECK_INTERVAL=15
+MAX_NOTIFICATIONS_PER_HOUR=100
+NOTIFICATION_COOLDOWN=1800
+
+# Метрики
+METRICS_PORT=8090
+METRICS_PATH=/metrics
+PROMETHEUS_ENABLED=true
+GRAFANA_ENABLED=true
+
+# =============================================================================
+# ПРОИЗВОДИТЕЛЬНОСТЬ И МАСШТАБИРОВАНИЕ
+# =============================================================================
+# Безопасность
+MAX_REQUESTS_PER_MINUTE=120
+RATE_LIMIT_WINDOW=60
+MAX_CONCURRENT_CONNECTIONS=50
+REQUEST_TIMEOUT=30
+ENABLE_RATE_LIMITING=true
+
+# Производительность
+MAX_BACKGROUND_TASKS=50
+TASK_TIMEOUT=300
+CONNECTION_POOL_SIZE=20
+ENABLE_CONNECTION_POOLING=true
+
+# Воркеры
+WORKER_COUNT=4
+QUEUE_WORKER_COUNT=2
+CLUSTER_MANAGER_ENABLED=true
+
+# =============================================================================
+# ОТКАЗОУСТОЙЧИВОСТЬ
+# =============================================================================
+# Graceful shutdown
+GRACEFUL_TIMEOUT=60
+FORCE_SHUTDOWN_TIMEOUT=120
+SAVE_STATE_ON_SHUTDOWN=true
+
+# Автовосстановление
+AUTO_RECOVERY_ENABLED=true
+CIRCUIT_BREAKER_ENABLED=true
+BACKUP_ENABLED=true
+BACKUP_INTERVAL=3600
+
+# Health checks
+HEALTH_CHECK_ENABLED=true
+HEALTH_CHECK_INTERVAL=30
+HEALTH_CHECK_TIMEOUT=10
+
+# =============================================================================
+# ДОМЕН И SSL (ЗАМЕНИТЬ НА ВАШИ!)
+# =============================================================================
+DOMAIN=your-domain.com
+SSL_CERT_PATH=/etc/letsencrypt/live/your-domain.com/fullchain.pem
+SSL_KEY_PATH=/etc/letsencrypt/live/your-domain.com/privkey.pem
+
+# =============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ
+# =============================================================================
+ENVIRONMENT=production
+DEBUG=false
+TEST_MODE=false
+
+# Часовой пояс
+TIMEZONE=Europe/Moscow
+
+# =============================================================================
+# ВАЖНЫЕ ЗАМЕЧАНИЯ ПО БЕЗОПАСНОСТИ:
+# =============================================================================
+#
+# 🚨 ОБЯЗАТЕЛЬНО ЗАМЕНИТЬ ПЕРЕД ПРОДАКШЕНОМ:
+# 1. BOT_TOKEN - создайте нового бота для продакшена
+# 2. Все пароли (DB_PASSWORD, REDIS_PASSWORD, etc.)
+# 3. MASTER_KEY, ENCRYPTION_KEY, JWT_SECRET
+# 4. YOOKASSA_SECRET_KEY - получите продакшен ключ
+# 5. TON кошельки - используйте новые продакшен кошельки
+# 6. API_ID и API_HASH для депозитных аккаунтов
+# 7. DOMAIN - ваш реальный домен
+# 8. WEBHOOK_SECRET - сгенерируйте криптостойкий токен
+#
+# 🔐 ГЕНЕРАЦИЯ КЛЮЧЕЙ:
+# MASTER_KEY: openssl rand -hex 32
+# ENCRYPTION_KEY: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# JWT_SECRET: openssl rand -base64 64
+# WEBHOOK_SECRET: openssl rand -hex 32
+#
+# 🛡️ НЕ КОММИТЬТЕ ЭТОТ ФАЙЛ В GIT!
+# Добавьте .env.production в .gitignore
+#
+# ============================================================================= 

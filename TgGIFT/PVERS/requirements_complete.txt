@@ -1,0 +1,64 @@
+# TgGIFT Bot - Полные зависимости для всех компонентов
+
+# Основные зависимости бота
+python-telegram-bot==20.7
+python-dotenv==1.0.0
+asyncio-mqtt==0.16.1
+
+# База данных
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+alembic==1.13.1
+SQLAlchemy==2.0.23
+
+# Redis и кэширование
+redis==5.0.1
+aioredis==2.0.1
+hiredis==2.2.3
+
+# Криптография и безопасность
+cryptography==41.0.8
+bcrypt==4.1.2
+PyJWT==2.8.0
+
+# HTTP клиенты и API
+aiohttp==3.9.1
+httpx==0.25.2
+requests==2.31.0
+
+# Мониторинг и метрики
+psutil==5.9.6
+prometheus-client==0.19.0
+
+# Логирование и аудит
+structlog==23.2.0
+colorlog==6.8.0
+
+# Платежи
+yookassa==2.3.5
+tonapi==0.1.2
+
+# Работа с изображениями и QR кодами
+Pillow==10.1.0
+qrcode==7.4.2
+
+# Валидация данных
+pydantic==2.5.1
+marshmallow==3.20.1
+
+# Утилиты
+click==8.1.7
+tqdm==4.66.1
+python-dateutil==2.8.2
+
+# Тестирование (опционально)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-mock==3.12.0
+
+# Продакшен сервер
+uvicorn==0.24.0
+gunicorn==21.2.0
+
+# Мониторинг процессов
+supervisor==4.2.5 

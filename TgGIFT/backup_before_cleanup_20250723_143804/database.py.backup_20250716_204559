@@ -1,0 +1,816 @@
+#!/usr/bin/env python3
+"""
+Система базы данных для TgGIFT Star Bot
+"""
+
+import sqlite3
+import logging
+import threading
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+from contextlib import contextmanager
+from config import DATABASE_PATH, SUBSCRIPTION_CONFIGS, QUEUE_SETTINGS
+
+logger = logging.getLogger(__name__)
+
+class DatabaseManager:
+    """Менеджер базы данных"""
+    
+    def __init__(self, db_path: str = DATABASE_PATH):
+        self.db_path = db_path
+        self._lock = threading.Lock()  # Для thread safety
+        self.init_database()
+    
+    @contextmanager
+    def get_connection(self):
+        """Контекстный менеджер для получения соединения с БД"""
+        conn = None
+        try:
+            conn = sqlite3.connect(self.db_path, timeout=30.0)
+            conn.execute("PRAGMA foreign_keys = ON")
+            conn.execute("PRAGMA journal_mode = WAL")  # Write-Ahead Logging для лучшей производительности
+            yield conn
+        except Exception as e:
+            logger.error(f"Ошибка соединения с БД: {e}")
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                conn.close()
+    
+    def init_database(self):
+        """Инициализация базы данных"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Таблица пользователей
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS users (
+                        user_id INTEGER PRIMARY KEY,
+                        username TEXT,
+                        first_name TEXT,
+                        last_name TEXT,
+                        registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        is_active BOOLEAN DEFAULT TRUE
+                    )
+                ''')
+                
+                # Таблица подписок
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS subscriptions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        subscription_type TEXT,
+                        start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        end_date TIMESTAMP,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                ''')
+                
+                # Таблица балансов
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS balances (
+                        user_id INTEGER PRIMARY KEY,
+                        balance_stars INTEGER DEFAULT 0,
+                        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                ''')
+                
+                # Таблица транзакций
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS transactions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        transaction_type TEXT,
+                        amount INTEGER,
+                        description TEXT,
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                ''')
+                
+                # Таблица очереди покупок
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS purchase_queue (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        position INTEGER,
+                        gifts_per_round INTEGER DEFAULT 1,
+                        current_gifts_bought INTEGER DEFAULT 0,
+                        is_active BOOLEAN DEFAULT TRUE,
+                        added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users (user_id)
+                    )
+                ''')
+                
+                # Таблица подарков
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS gifts (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        gift_id TEXT UNIQUE,
+                        name TEXT,
+                        price_stars INTEGER,
+                        url TEXT,
+                        is_available BOOLEAN DEFAULT TRUE,
+                        discovered_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_checked TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                ''')
+                
+                # Таблица покупок
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS purchases (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        gift_id TEXT,
+                        purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        price_stars INTEGER,
+                        status TEXT DEFAULT 'completed',
+                        FOREIGN KEY (user_id) REFERENCES users (user_id),
+                        FOREIGN KEY (gift_id) REFERENCES gifts (gift_id)
+                    )
+                ''')
+                
+                # Таблица уведомлений
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS notifications (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id BIGINT NOT NULL,
+                        message TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        is_sent BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        sent_at TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(user_id)
+                    )
+                ''')
+                
+                # Создаем индексы для улучшения производительности
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_subscriptions_user_active ON subscriptions (user_id, is_active)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions (user_id, timestamp)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_queue_position ON purchase_queue (position)')
+                cursor.execute('CREATE INDEX IF NOT EXISTS idx_gifts_available ON gifts (is_available, discovered_date)')
+                
+                conn.commit()
+                logger.info("База данных инициализирована успешно")
+                
+        except Exception as e:
+            logger.error(f"Ошибка инициализации базы данных: {e}")
+            raise
+    
+    def _validate_user_id(self, user_id: int) -> bool:
+        """Валидация user_id"""
+        return isinstance(user_id, int) and user_id > 0
+    
+    def _validate_amount(self, amount: int) -> bool:
+        """Валидация суммы"""
+        return isinstance(amount, int) and amount >= 0
+    
+    def register_user(self, user_id: int, username: Optional[str] = None, 
+                     first_name: Optional[str] = None, last_name: Optional[str] = None) -> bool:
+        """Регистрация нового пользователя"""
+        if not self._validate_user_id(user_id):
+            logger.error(f"Некорректный user_id: {user_id}")
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем, существует ли пользователь
+                cursor.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
+                if cursor.fetchone():
+                    return True  # Пользователь уже существует
+                
+                # Добавляем пользователя
+                cursor.execute('''
+                    INSERT INTO users (user_id, username, first_name, last_name)
+                    VALUES (?, ?, ?, ?)
+                ''', (user_id, username, first_name, last_name))
+                
+                # Создаем запись баланса
+                cursor.execute('''
+                    INSERT INTO balances (user_id, balance_stars)
+                    VALUES (?, 0)
+                ''', (user_id,))
+                
+                conn.commit()
+                logger.info(f"Пользователь {user_id} зарегистрирован")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка регистрации пользователя {user_id}: {e}")
+            return False
+    
+    def get_user_info(self, user_id: int) -> Optional[Dict]:
+        """Получение информации о пользователе"""
+        if not self._validate_user_id(user_id):
+            return None
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT u.*, b.balance_stars, s.subscription_type, s.end_date
+                    FROM users u
+                    LEFT JOIN balances b ON u.user_id = b.user_id
+                    LEFT JOIN subscriptions s ON u.user_id = s.user_id AND s.is_active = TRUE
+                    WHERE u.user_id = ?
+                ''', (user_id,))
+                
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        'user_id': row[0],
+                        'username': row[1],
+                        'first_name': row[2],
+                        'last_name': row[3],
+                        'registration_date': row[4],
+                        'balance_stars': row[6] or 0,
+                        'subscription_type': row[7],
+                        'subscription_end_date': row[8]
+                    }
+                return None
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения информации о пользователе {user_id}: {e}")
+            return None
+    
+    def get_all_active_users(self) -> List[Dict]:
+        """Получение всех активных пользователей с подписками"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT DISTINCT u.user_id, u.username, u.first_name, u.last_name
+                    FROM users u
+                    JOIN subscriptions s ON u.user_id = s.user_id
+                    WHERE s.is_active = TRUE
+                    ORDER BY u.user_id
+                ''')
+                
+                users = []
+                for row in cursor.fetchall():
+                    users.append({
+                        'user_id': row[0],
+                        'username': row[1] or '',
+                        'first_name': row[2] or '',
+                        'last_name': row[3] or ''
+                    })
+                
+                return users
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения активных пользователей: {e}")
+            return []
+    
+    def activate_subscription(self, user_id: int, subscription_type: str) -> bool:
+        """Активация подписки"""
+        if not self._validate_user_id(user_id):
+            return False
+        
+        if subscription_type not in SUBSCRIPTION_CONFIGS:
+            logger.error(f"Неизвестный тип подписки: {subscription_type}")
+            return False
+        
+        try:
+            config = SUBSCRIPTION_CONFIGS[subscription_type]
+            end_date = datetime.now() + timedelta(days=config['duration_days'])
+            
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Деактивируем старые подписки
+                cursor.execute('''
+                    UPDATE subscriptions 
+                    SET is_active = FALSE 
+                    WHERE user_id = ? AND is_active = TRUE
+                ''', (user_id,))
+                
+                # Активируем новую подписку
+                cursor.execute('''
+                    INSERT INTO subscriptions (user_id, subscription_type, end_date)
+                    VALUES (?, ?, ?)
+                ''', (user_id, subscription_type, end_date))
+                
+                conn.commit()
+                logger.info(f"Подписка {subscription_type} активирована для пользователя {user_id}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка активации подписки для пользователя {user_id}: {e}")
+            return False
+    
+    def get_user_subscription(self, user_id: int) -> Optional[Dict]:
+        """Получение активной подписки пользователя"""
+        if not self._validate_user_id(user_id):
+            return None
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT subscription_type, start_date, end_date, is_active
+                    FROM subscriptions
+                    WHERE user_id = ? AND is_active = TRUE
+                    ORDER BY start_date DESC
+                    LIMIT 1
+                ''', (user_id,))
+                
+                row = cursor.fetchone()
+                if row:
+                    return {
+                        'type': row[0],
+                        'start_date': row[1],
+                        'end_date': row[2],
+                        'is_active': row[3]
+                    }
+                return None
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения подписки пользователя {user_id}: {e}")
+            return None
+    
+    def get_subscription_info(self, user_id: int, sub_type: str) -> Optional[Dict]:
+        """Получение активной подписки пользователя"""
+        if not self._validate_user_id(user_id):
+            return None
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT subscription_type, start_date, end_date
+                    FROM subscriptions
+                    WHERE user_id = ? AND is_active = TRUE AND end_date > datetime('now')
+                    ORDER BY start_date DESC
+                    LIMIT 1
+                ''', (user_id,))
+                
+                row = cursor.fetchone()
+                if row:
+                    subscription_type = row[0]
+                    config = SUBSCRIPTION_CONFIGS[subscription_type]
+                    return {
+                        'type': subscription_type,
+                        'name': config['name'],
+                        'start_date': row[1],
+                        'end_date': row[2],
+                        'features': config['features'],
+                        'price_stars': config['stars']
+                    }
+                return None
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения подписки пользователя {user_id}: {e}")
+            return None
+    
+    def update_balance(self, user_id: int, amount: int, 
+                      transaction_type: str, description: str = "") -> bool:
+        """Обновление баланса пользователя"""
+        if not self._validate_user_id(user_id) or not self._validate_amount(abs(amount)):
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем, что у пользователя достаточно средств для списания
+                if amount < 0:
+                    cursor.execute('SELECT balance_stars FROM balances WHERE user_id = ?', (user_id,))
+                    row = cursor.fetchone()
+                    current_balance = row[0] if row else 0
+                    if current_balance + amount < 0:
+                        logger.warning(f"Недостаточно средств у пользователя {user_id}: {current_balance} + {amount}")
+                        return False
+                
+                # Обновляем баланс
+                cursor.execute('''
+                    UPDATE balances 
+                    SET balance_stars = balance_stars + ?, last_updated = datetime('now')
+                    WHERE user_id = ?
+                ''', (amount, user_id))
+                
+                # Записываем транзакцию
+                cursor.execute('''
+                    INSERT INTO transactions (user_id, transaction_type, amount, description)
+                    VALUES (?, ?, ?, ?)
+                ''', (user_id, transaction_type, amount, description))
+                
+                conn.commit()
+                logger.info(f"Баланс пользователя {user_id} обновлен на {amount} звезд")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка обновления баланса пользователя {user_id}: {e}")
+            return False
+    
+    def get_balance(self, user_id: int) -> int:
+        """Получение баланса пользователя"""
+        if not self._validate_user_id(user_id):
+            return 0
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('SELECT balance_stars FROM balances WHERE user_id = ?', (user_id,))
+                row = cursor.fetchone()
+                
+                return row[0] if row else 0
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения баланса пользователя {user_id}: {e}")
+            return 0
+    
+    def add_to_purchase_queue(self, user_id: int, gifts_per_round: int = 1) -> bool:
+        """Добавление пользователя в очередь покупок"""
+        if not self._validate_user_id(user_id):
+            return False
+        
+        if gifts_per_round < 1 or gifts_per_round > 10:  # Ограничиваем количество покупок за раз
+            logger.warning(f"Некорректное количество покупок за раз: {gifts_per_round}")
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем размер очереди
+                cursor.execute('SELECT COUNT(*) FROM purchase_queue WHERE is_active = TRUE')
+                queue_size = cursor.fetchone()[0]
+                if queue_size >= QUEUE_SETTINGS['max_queue_size']:
+                    logger.warning(f"Очередь переполнена: {queue_size}")
+                    return False
+                
+                # Проверяем, есть ли уже пользователь в очереди
+                cursor.execute('''
+                    SELECT id FROM purchase_queue 
+                    WHERE user_id = ? AND is_active = TRUE
+                ''', (user_id,))
+                
+                if cursor.fetchone():
+                    logger.warning(f"Пользователь {user_id} уже в очереди")
+                    return False
+                
+                # Получаем следующую позицию
+                cursor.execute('''
+                    SELECT COALESCE(MAX(position), 0) + 1 
+                    FROM purchase_queue 
+                    WHERE is_active = TRUE
+                ''')
+                
+                position = cursor.fetchone()[0]
+                
+                # Добавляем в очередь
+                cursor.execute('''
+                    INSERT INTO purchase_queue (user_id, position, gifts_per_round)
+                    VALUES (?, ?, ?)
+                ''', (user_id, position, gifts_per_round))
+                
+                conn.commit()
+                logger.info(f"Пользователь {user_id} добавлен в очередь на позиции {position}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка добавления в очередь пользователя {user_id}: {e}")
+            return False
+    
+    def get_purchase_queue(self) -> List[Dict]:
+        """Получение очереди покупок"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT pq.*, u.first_name, u.username, b.balance_stars
+                    FROM purchase_queue pq
+                    JOIN users u ON pq.user_id = u.user_id
+                    JOIN balances b ON pq.user_id = b.user_id
+                    WHERE pq.is_active = TRUE
+                    ORDER BY pq.position
+                ''')
+                
+                queue = []
+                for row in cursor.fetchall():
+                    queue.append({
+                        'id': row[0],
+                        'user_id': row[1],
+                        'position': row[2],
+                        'gifts_per_round': row[3],
+                        'current_gifts_bought': row[4],
+                        'first_name': row[6],
+                        'username': row[7],
+                        'balance_stars': row[8]
+                    })
+                
+                return queue
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения очереди покупок: {e}")
+            return []
+    
+    def get_user_queue_position(self, user_id: int) -> Optional[int]:
+        """Получение позиции пользователя в очереди"""
+        if not self._validate_user_id(user_id):
+            return None
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT position FROM purchase_queue 
+                    WHERE user_id = ? AND is_active = TRUE
+                ''', (user_id,))
+                
+                row = cursor.fetchone()
+                return row[0] if row else None
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения позиции пользователя {user_id}: {e}")
+            return None
+    
+    def record_purchase(self, user_id: int, gift_id: str, price_stars: int) -> bool:
+        """Запись покупки подарка"""
+        if not self._validate_user_id(user_id) or not self._validate_amount(price_stars):
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                # Проверяем баланс перед покупкой
+                cursor.execute('SELECT balance_stars FROM balances WHERE user_id = ?', (user_id,))
+                row = cursor.fetchone()
+                current_balance = row[0] if row else 0
+                
+                if current_balance < price_stars:
+                    logger.warning(f"Недостаточно средств для покупки: {current_balance} < {price_stars}")
+                    return False
+                
+                # Записываем покупку
+                cursor.execute('''
+                    INSERT INTO purchases (user_id, gift_id, price_stars)
+                    VALUES (?, ?, ?)
+                ''', (user_id, gift_id, price_stars))
+                
+                # Обновляем счетчик покупок в очереди
+                cursor.execute('''
+                    UPDATE purchase_queue 
+                    SET current_gifts_bought = current_gifts_bought + 1
+                    WHERE user_id = ? AND is_active = TRUE
+                ''', (user_id,))
+                
+                # Списываем баланс
+                cursor.execute('''
+                    UPDATE balances 
+                    SET balance_stars = balance_stars - ?, last_updated = datetime('now')
+                    WHERE user_id = ?
+                ''', (price_stars, user_id))
+                
+                conn.commit()
+                logger.info(f"Покупка записана: пользователь {user_id}, подарок {gift_id}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка записи покупки: {e}")
+            return False
+    
+    def add_gift(self, gift_id: str, name: str, price_stars: int, url: str) -> bool:
+        """Добавление нового подарка"""
+        if not gift_id or not name or not self._validate_amount(price_stars):
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    INSERT OR REPLACE INTO gifts (gift_id, name, price_stars, url)
+                    VALUES (?, ?, ?, ?)
+                ''', (gift_id, name, price_stars, url))
+                
+                conn.commit()
+                logger.info(f"Подарок {gift_id} добавлен в базу")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка добавления подарка {gift_id}: {e}")
+            return False
+    
+    def get_available_gifts(self) -> List[Dict]:
+        """Получение доступных подарков"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT gift_id, name, price_stars, url, discovered_date
+                    FROM gifts
+                    WHERE is_available = TRUE
+                    ORDER BY discovered_date DESC
+                ''')
+                
+                gifts = []
+                for row in cursor.fetchall():
+                    gifts.append({
+                        'gift_id': row[0],
+                        'name': row[1],
+                        'price_stars': row[2],
+                        'url': row[3],
+                        'discovered_date': row[4]
+                    })
+                
+                return gifts
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения доступных подарков: {e}")
+            return []
+    
+    def get_user_gifts(self, user_id: int) -> List[Dict]:
+        """Возвращает список купленных пользователем подарков"""
+        if not self._validate_user_id(user_id):
+            return []
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT g.name, p.price_stars, p.status, p.purchase_date
+                    FROM purchases p
+                    JOIN gifts g ON p.gift_id = g.gift_id
+                    WHERE p.user_id = ?
+                    ORDER BY p.purchase_date DESC
+                ''', (user_id,))
+                gifts = []
+                for row in cursor.fetchall():
+                    gifts.append({
+                        'name': row[0],
+                        'price_stars': row[1],
+                        'status': row[2] if row[2] else 'Куплен',
+                        'purchase_date': row[3]
+                    })
+                return gifts
+        except Exception as e:
+            logger.error(f"Ошибка получения купленных подарков пользователя {user_id}: {e}")
+            return []
+    
+    def get_user_transactions(self, user_id: int, limit: int = 10) -> List[Dict]:
+        """Возвращает историю транзакций пользователя"""
+        if not self._validate_user_id(user_id):
+            return []
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT transaction_type, amount, description, timestamp
+                    FROM transactions
+                    WHERE user_id = ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                ''', (user_id, limit))
+                transactions = []
+                for row in cursor.fetchall():
+                    # Определяем тип операции для отображения
+                    operation_type = "Пополнение" if row[1] > 0 else "Списание"
+                    transactions.append({
+                        'type': row[0],
+                        'amount': row[1],
+                        'description': row[2] if row[2] else 'Операция',
+                        'timestamp': row[3],
+                        'operation_type': operation_type
+                    })
+                return transactions
+        except Exception as e:
+            logger.error(f"Ошибка получения истории транзакций пользователя {user_id}: {e}")
+            return []
+    
+    def add_notification(self, user_id: int, message: str, notification_type: str) -> bool:
+        """Добавление уведомления для пользователя"""
+        if not self._validate_user_id(user_id):
+            return False
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    INSERT INTO notifications (user_id, message, type, is_sent)
+                    VALUES (?, ?, ?, FALSE)
+                ''', (user_id, message, notification_type))
+                
+                conn.commit()
+                logger.info(f"Уведомление добавлено для пользователя {user_id}")
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка добавления уведомления: {e}")
+            return False
+    
+    def get_pending_notifications(self, user_id: int) -> List[Dict]:
+        """Получение непрочитанных уведомлений пользователя"""
+        if not self._validate_user_id(user_id):
+            return []
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT id, message, type, created_at
+                    FROM notifications
+                    WHERE user_id = ? AND is_sent = FALSE
+                    ORDER BY created_at ASC
+                ''', (user_id,))
+                
+                notifications = []
+                for row in cursor.fetchall():
+                    notifications.append({
+                        'id': row[0],
+                        'message': row[1],
+                        'type': row[2],
+                        'created_at': row[3]
+                    })
+                
+                return notifications
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения уведомлений: {e}")
+            return []
+    
+    def mark_notification_sent(self, notification_id: int) -> bool:
+        """Отметить уведомление как отправленное"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    UPDATE notifications
+                    SET is_sent = TRUE, sent_at = datetime('now')
+                    WHERE id = ?
+                ''', (notification_id,))
+                
+                conn.commit()
+                return True
+                
+        except Exception as e:
+            logger.error(f"Ошибка отметки уведомления: {e}")
+            return False
+    
+    def cleanup_expired_subscriptions(self):
+        """Очистка истекших подписок"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    UPDATE subscriptions 
+                    SET is_active = FALSE 
+                    WHERE is_active = TRUE AND end_date <= datetime('now')
+                ''')
+                
+                affected_rows = cursor.rowcount
+                if affected_rows > 0:
+                    conn.commit()
+                    logger.info(f"Деактивировано {affected_rows} истекших подписок")
+                
+        except Exception as e:
+            logger.error(f"Ошибка очистки истекших подписок: {e}")
+    
+    def get_database_stats(self) -> Dict:
+        """Получение статистики базы данных"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                
+                stats = {}
+                
+                # Количество пользователей
+                cursor.execute('SELECT COUNT(*) FROM users WHERE is_active = TRUE')
+                stats['total_users'] = cursor.fetchone()[0]
+                
+                # Количество активных подписок
+                cursor.execute('SELECT COUNT(*) FROM subscriptions WHERE is_active = TRUE')
+                stats['active_subscriptions'] = cursor.fetchone()[0]
+                
+                # Размер очереди
+                cursor.execute('SELECT COUNT(*) FROM purchase_queue WHERE is_active = TRUE')
+                stats['queue_size'] = cursor.fetchone()[0]
+                
+                # Количество подарков
+                cursor.execute('SELECT COUNT(*) FROM gifts WHERE is_available = TRUE')
+                stats['available_gifts'] = cursor.fetchone()[0]
+                
+                return stats
+                
+        except Exception as e:
+            logger.error(f"Ошибка получения статистики БД: {e}")
+            return {} 

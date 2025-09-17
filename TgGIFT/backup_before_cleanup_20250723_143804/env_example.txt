@@ -1,0 +1,98 @@
+# TgGIFT Bot Configuration
+# ВНИМАНИЕ: Это реальные данные из документации для разработки
+# ДЛЯ PRODUCTION ОБЯЗАТЕЛЬНО СМЕНИТЕ ВСЕ КЛЮЧИ И ТОКЕНЫ!
+
+# ========== ОСНОВНЫЕ НАСТРОЙКИ ==========
+# Telegram Bot Token (получите у @BotFather)
+BOT_TOKEN=7564431045:AAGcpyprhMiU1SyxHLolc41yahd5YI79KI8
+
+# ID администратора бота (ваш Telegram ID)
+ADMIN_ID=592900565
+
+# ========== ЮКАССА ==========
+# Настройки ЮКассы для приема платежей
+YOOKASSA_SHOP_ID=1107158
+YOOKASSA_SECRET_KEY=live_a6nB1WdYS8XT5ygHIBjS3xHQhuSkAcCGkEbJ1iiVaHA
+YOOKASSA_WEBHOOK_URL=https://your-domain.com/webhook/yookassa
+YOOKASSA_RETURN_URL=https://t.me/your_bot
+YOOKASSA_TEST_MODE=false
+
+# ========== TON КОШЕЛЬКИ ==========
+# TON кошельки для приема платежей
+TON_WALLET_1_ADDRESS=UQD6zqW_AfYdaV1TtaQ12HllRnnB3dwglBLPf6oURkXqTsys
+TON_WALLET_1_NAME=Основной кошелек
+TON_WALLET_1_ACTIVE=true
+
+TON_WALLET_2_ADDRESS=UQDO7xVY7G3DRUKAqzSUOj87HAi0C1RLSAJpcWTA4deXv54G
+TON_WALLET_2_NAME=Резервный кошелек
+TON_WALLET_2_ACTIVE=true
+
+# ========== ДЕПОЗИТНЫЕ АККАУНТЫ ==========
+# Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_API_ID=23753892
+DEPOSIT_ACCOUNT_1_API_HASH=653acf651924803b70f1a9dc0aee62db
+DEPOSIT_ACCOUNT_1_PHONE=+79897091635
+DEPOSIT_ACCOUNT_1_TON_WALLET=wallet_1
+DEPOSIT_ACCOUNT_1_NAME=Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_ACTIVE=true
+DEPOSIT_ACCOUNT_1_MAX_PURCHASES=100
+
+# Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_API_ID=25296194
+DEPOSIT_ACCOUNT_2_API_HASH=e4fc068d92c8db002f322becf3e2a407
+DEPOSIT_ACCOUNT_2_PHONE=+79094020468
+DEPOSIT_ACCOUNT_2_TON_WALLET=wallet_2
+DEPOSIT_ACCOUNT_2_NAME=Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_ACTIVE=true
+DEPOSIT_ACCOUNT_2_MAX_PURCHASES=100
+
+# ========== ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ ==========
+# База данных
+DATABASE_PATH=gift_bot.db
+
+# Логирование
+LOG_LEVEL=INFO
+LOG_FILE=logs/bot.log
+LOG_MAX_SIZE=10485760
+LOG_BACKUP_COUNT=5
+
+# Мониторинг
+MONITORING_INTERVAL=15
+GIFT_CHECK_INTERVAL=15
+MAX_NOTIFICATIONS_PER_HOUR=50
+NOTIFICATION_COOLDOWN=3600
+
+# Безопасность
+MAX_REQUESTS_PER_MINUTE=60
+RATE_LIMIT_WINDOW=60
+MAX_CONCURRENT_CONNECTIONS=10
+REQUEST_TIMEOUT=30
+ENABLE_RATE_LIMITING=true
+
+# Производительность
+MAX_BACKGROUND_TASKS=20
+TASK_TIMEOUT=300
+CONNECTION_POOL_SIZE=5
+ENABLE_CONNECTION_POOLING=true
+
+# Тестирование
+TEST_MODE=false
+
+# Graceful shutdown
+GRACEFUL_TIMEOUT=30
+FORCE_SHUTDOWN_TIMEOUT=60
+SAVE_STATE_ON_SHUTDOWN=true
+
+# ========================================
+# ВАЖНЫЕ ЗАМЕЧАНИЯ ПО БЕЗОПАСНОСТИ:
+# ========================================
+# 
+# 1. ЭТИ ДАННЫЕ ПРЕДНАЗНАЧЕНЫ ТОЛЬКО ДЛЯ РАЗРАБОТКИ!
+# 2. ДЛЯ PRODUCTION ОБЯЗАТЕЛЬНО СМЕНИТЕ:
+#    - BOT_TOKEN (создайте нового бота)
+#    - YOOKASSA_SECRET_KEY (получите новый ключ)
+#    - Все API_HASH и API_ID депозитных аккаунтов
+# 3. НЕ КОММИТЬТЕ .env ФАЙЛ В GIT!
+# 4. Используйте отдельные кошельки для production
+# 
+# ========================================

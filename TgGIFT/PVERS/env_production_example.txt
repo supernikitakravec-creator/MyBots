@@ -1,0 +1,339 @@
+# =============================================================================
+# TgGIFT Bot - Production Environment Configuration
+# =============================================================================
+
+# =============================================================================
+# ОСНОВНЫЕ НАСТРОЙКИ БОТА
+# =============================================================================
+BOT_TOKEN=your_telegram_bot_token_here
+BOT_USERNAME=your_bot_username
+WEBHOOK_URL=https://your-domain.com/webhook
+WEBHOOK_SECRET=your_webhook_secret_token
+
+# =============================================================================
+# БАЗА ДАННЫХ POSTGRESQL
+# =============================================================================
+DB_HOST=postgresql
+DB_PORT=5432
+DB_NAME=tggift
+DB_USER=tggift_user
+DB_PASSWORD=your_secure_database_password
+DB_MAX_CONNECTIONS=20
+DB_MIN_CONNECTIONS=5
+DB_CONNECTION_TIMEOUT=30
+
+# =============================================================================
+# REDIS КЭШИРОВАНИЕ
+# =============================================================================
+REDIS_HOST=redis-cache
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=your_redis_password
+REDIS_KEY_PREFIX=tggift
+REDIS_CONNECTION_TIMEOUT=5
+
+# Настройки кэша
+CACHE_DEFAULT_TTL=3600
+CACHE_USER_DATA_TTL=1800
+CACHE_SUBSCRIPTION_TTL=300
+CACHE_GIFT_DATA_TTL=900
+CACHE_PAYMENT_TTL=600
+
+# =============================================================================
+# REDIS ОЧЕРЕДИ СООБЩЕНИЙ
+# =============================================================================
+REDIS_QUEUE_HOST=redis-queue
+REDIS_QUEUE_PORT=6379
+REDIS_QUEUE_DB=1
+REDIS_QUEUE_PASSWORD=your_redis_queue_password
+QUEUE_KEY_PREFIX=tggift:queue
+
+# =============================================================================
+# ШИФРОВАНИЕ И БЕЗОПАСНОСТЬ
+# =============================================================================
+MASTER_ENCRYPTION_KEY=your_base64_encoded_master_key_here
+KEY_ROTATION_DAYS=30
+ENCRYPTION_ALGORITHM=Fernet
+
+# Аутентификация
+SESSION_TIMEOUT_HOURS=8
+MAX_SESSIONS_PER_USER=3
+MAX_LOGIN_ATTEMPTS=3
+LOCKOUT_DURATION_MINUTES=30
+REQUIRE_2FA_FOR_ADMIN=true
+
+# Аудит безопасности
+SECURITY_LOG_FILE=/app/logs/security_audit.log
+MAX_EVENTS_IN_MEMORY=50000
+AUDIT_RETENTION_DAYS=365
+
+# Валидация входных данных
+ENABLE_INPUT_VALIDATION=true
+BLOCK_SUSPICIOUS_PATTERNS=true
+LOG_SECURITY_EVENTS=true
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS_PER_MINUTE=60
+RATE_LIMIT_BURST_SIZE=5
+RATE_LIMIT_WINDOW_MINUTES=1
+MAX_REQUESTS_PER_MINUTE=60
+ENABLE_RATE_LIMITING=true
+
+# =============================================================================
+# МОНИТОРИНГ И МЕТРИКИ
+# =============================================================================
+MONITORING_ENABLED=true
+METRICS_COLLECTION_INTERVAL=60
+HEALTH_CHECK_INTERVAL=30
+
+# Логирование
+LOG_LEVEL=INFO
+LOG_JSON_FORMAT=true
+LOG_FILE=logs/bot.log
+LOG_MAX_FILE_SIZE=10
+LOG_BACKUP_COUNT=5
+
+# Алерты
+ALERT_TELEGRAM_CHAT_ID=your_admin_chat_id
+ALERT_TELEGRAM_TOKEN=your_alert_bot_token
+ALERT_EMAIL_SMTP_HOST=smtp.gmail.com
+ALERT_EMAIL_SMTP_PORT=587
+ALERT_EMAIL_USER=alerts@your-domain.com
+ALERT_EMAIL_PASSWORD=your_email_password
+ALERT_EMAIL_TO=admin@your-domain.com
+ALERT_WEBHOOK_URL=https://your-monitoring.com/webhook
+ALERT_COOLDOWN_MINUTES=15
+
+# =============================================================================
+# ОТКАЗОУСТОЙЧИВОСТЬ
+# =============================================================================
+
+# Бэкапы
+BACKUP_ENABLED=true
+BACKUP_DIR=/app/backups
+BACKUP_RETENTION_DAYS=30
+BACKUP_COMPRESSION=gzip
+BACKUP_DAILY_HOUR=2
+BACKUP_WEEKLY_DAY=0
+BACKUP_MONTHLY_DAY=1
+
+# Graceful Shutdown
+GRACEFUL_SHUTDOWN_TIMEOUT=30
+FORCE_SHUTDOWN_TIMEOUT=60
+GRACEFUL_TIMEOUT=30
+SAVE_STATE_ON_SHUTDOWN=true
+
+# Auto Recovery
+AUTO_RECOVERY_ENABLED=true
+FAILURE_WINDOW_MINUTES=10
+MAX_FAILURES_PER_WINDOW=3
+
+# Circuit Breaker
+CIRCUIT_BREAKER_ENABLED=true
+DEFAULT_FAILURE_THRESHOLD=3
+DEFAULT_SUCCESS_THRESHOLD=2
+DEFAULT_TIMEOUT=60
+
+# =============================================================================
+# ГОРИЗОНТАЛЬНОЕ МАСШТАБИРОВАНИЕ
+# =============================================================================
+
+# Load Balancer
+LOAD_BALANCER_STRATEGY=consistent_hashing
+LOAD_BALANCER_HEALTH_CHECK_INTERVAL=15
+MAX_CONNECTIONS_PER_WORKER=2000
+
+# Worker Manager
+MAX_WORKERS=20
+AUTO_SCALE_WORKERS=true
+WORKER_MONITOR_INTERVAL=10
+WORKER_RESTART_ON_FAILURE=true
+WORKER_MAX_MEMORY_MB=1024
+WORKER_MAX_CPU_PERCENT=80
+
+# Scaling
+MIN_WORKERS_PER_TYPE=3
+MAX_WORKERS_PER_TYPE=10
+SCALE_UP_THRESHOLD=60
+SCALE_DOWN_THRESHOLD=20
+
+# =============================================================================
+# ПЛАТЕЖИ
+# =============================================================================
+
+# YooKassa
+YOOKASSA_SHOP_ID=1107158
+YOOKASSA_SECRET_KEY=live_a6nB1WdYS8XT5ygHIBjS3xHQhuSkAcCGkEbJ1iiVaHA
+YOOKASSA_WEBHOOK_URL=https://your-domain.com/webhook/yookassa
+YOOKASSA_RETURN_URL=https://t.me/your_bot
+YOOKASSA_TEST_MODE=false
+
+# TON Кошельки
+TON_WALLET_1_ADDRESS=UQD6zqW_AfYdaV1TtaQ12HllRnnB3dwglBLPf6oURkXqTsys
+TON_WALLET_1_NAME=Основной кошелек
+TON_WALLET_1_ACTIVE=true
+
+TON_WALLET_2_ADDRESS=UQDO7xVY7G3DRUKAqzSUOj87HAi0C1RLSAJpcWTA4deXv54G
+TON_WALLET_2_NAME=Резервный кошелек
+TON_WALLET_2_ACTIVE=true
+
+# =============================================================================
+# ДЕПОЗИТНЫЕ АККАУНТЫ
+# =============================================================================
+
+# Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_API_ID=23753892
+DEPOSIT_ACCOUNT_1_API_HASH=653acf651924803b70f1a9dc0aee62db
+DEPOSIT_ACCOUNT_1_PHONE=+79897091635
+DEPOSIT_ACCOUNT_1_TON_WALLET=wallet_1
+DEPOSIT_ACCOUNT_1_NAME=Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_ACTIVE=true
+DEPOSIT_ACCOUNT_1_MAX_PURCHASES=100
+
+# Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_API_ID=25296194
+DEPOSIT_ACCOUNT_2_API_HASH=e4fc068d92c8db002f322becf3e2a407
+DEPOSIT_ACCOUNT_2_PHONE=+79094020468
+DEPOSIT_ACCOUNT_2_TON_WALLET=wallet_2
+DEPOSIT_ACCOUNT_2_NAME=Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_ACTIVE=true
+DEPOSIT_ACCOUNT_2_MAX_PURCHASES=100
+
+# =============================================================================
+# ВНЕШНИЕ СЕРВИСЫ
+# =============================================================================
+
+# SMS (для уведомлений)
+SMS_PROVIDER=your_sms_provider
+SMS_API_KEY=your_sms_api_key
+SMS_FROM=TgGIFT
+
+# Email
+EMAIL_SMTP_HOST=smtp.gmail.com
+EMAIL_SMTP_PORT=587
+EMAIL_USER=noreply@your-domain.com
+EMAIL_PASSWORD=your_email_password
+EMAIL_FROM_NAME=TgGIFT Bot
+
+# =============================================================================
+# ПРОДАКШЕН НАСТРОЙКИ
+# =============================================================================
+
+# Окружение
+ENVIRONMENT=production
+DEBUG=false
+TESTING=false
+
+# Домен и SSL
+DOMAIN=your-domain.com
+SSL_CERT_PATH=/etc/nginx/ssl/cert.pem
+SSL_KEY_PATH=/etc/nginx/ssl/key.pem
+
+# Grafana (мониторинг)
+GRAFANA_PASSWORD=your_secure_grafana_password
+
+# Prometheus
+PROMETHEUS_RETENTION_TIME=30d
+
+# =============================================================================
+# СИСТЕМНЫЕ НАСТРОЙКИ
+# =============================================================================
+
+# Часовой пояс
+TZ=Europe/Moscow
+
+# Локаль
+LANG=ru_RU.UTF-8
+LC_ALL=ru_RU.UTF-8
+
+# =============================================================================
+# ДЕПОЗИТНЫЕ АККАУНТЫ
+# =============================================================================
+
+# Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_API_ID=23753892
+DEPOSIT_ACCOUNT_1_API_HASH=653acf651924803b70f1a9dc0aee62db
+DEPOSIT_ACCOUNT_1_PHONE=+79897091635
+DEPOSIT_ACCOUNT_1_TON_WALLET=wallet_1
+DEPOSIT_ACCOUNT_1_NAME=Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_ACTIVE=true
+DEPOSIT_ACCOUNT_1_MAX_PURCHASES=100
+
+# Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_API_ID=25296194
+DEPOSIT_ACCOUNT_2_API_HASH=e4fc068d92c8db002f322becf3e2a407
+DEPOSIT_ACCOUNT_2_PHONE=+79094020468
+DEPOSIT_ACCOUNT_2_TON_WALLET=wallet_2
+DEPOSIT_ACCOUNT_2_NAME=Второй депозитный аккаунт
+DEPOSIT_ACCOUNT_2_ACTIVE=true
+DEPOSIT_ACCOUNT_2_MAX_PURCHASES=100
+
+# =============================================================================
+# ДОПОЛНИТЕЛЬНЫЕ НАСТРОЙКИ
+# =============================================================================
+
+# База данных (для локальной разработки)
+DATABASE_PATH=gift_bot.db
+
+# Мониторинг
+MONITORING_INTERVAL=15
+GIFT_CHECK_INTERVAL=15
+MAX_NOTIFICATIONS_PER_HOUR=50
+NOTIFICATION_COOLDOWN=3600
+
+# Производительность
+MAX_BACKGROUND_TASKS=20
+TASK_TIMEOUT=300
+CONNECTION_POOL_SIZE=5
+ENABLE_CONNECTION_POOLING=true
+REQUEST_TIMEOUT=30
+MAX_CONCURRENT_CONNECTIONS=10
+
+# Тестирование
+TEST_MODE=false
+
+# Лимиты файлов
+MAX_UPLOAD_SIZE=10485760  # 10MB
+ALLOWED_FILE_TYPES=jpg,jpeg,png,gif,pdf
+
+# Настройки подарков
+MIN_GIFT_AMOUNT=1
+MAX_GIFT_AMOUNT=10000
+GIFT_FEE_PERCENT=5
+
+# VIP настройки
+VIP_PRICE_PER_DAY=10
+VIP_DISCOUNT_BULK=0.1  # 10% скидка за покупку на месяц+
+
+# Реферальная система
+REFERRAL_BONUS_PERCENT=10
+MIN_REFERRAL_PAYOUT=100
+
+# =============================================================================
+# ИНСТРУКЦИИ ПО НАСТРОЙКЕ
+# =============================================================================
+
+# 1. Скопируйте этот файл в .env
+# 2. Замените все значения "your_*" на реальные
+# 3. Сгенерируйте MASTER_ENCRYPTION_KEY:
+#    python -c "from cryptography.fernet import Fernet; import base64; print(base64.b64encode(Fernet.generate_key()).decode())"
+# 4. Создайте безопасные пароли для всех сервисов
+# 5. Настройте SSL сертификаты для HTTPS
+# 6. Проверьте все подключения перед запуском в продакшене
+
+# =============================================================================
+# КОМАНДЫ ДЛЯ ЗАПУСКА
+# =============================================================================
+
+# Разработка:
+# docker-compose up -d
+
+# Продакшен:
+# docker-compose -f docker-compose.production.yml up -d
+
+# Мониторинг:
+# docker-compose logs -f
+# docker-compose exec bot-worker-1 python -c "from health_monitor import *; print('Health check')"
+
+# Бэкап:
+# docker-compose exec postgresql pg_dump -U tggift_user tggift > backup.sql 

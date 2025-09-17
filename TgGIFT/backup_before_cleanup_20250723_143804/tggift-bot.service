@@ -1,0 +1,38 @@
+[Unit]
+Description=TgGIFT Star Bot
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=tggift
+Group=tggift
+WorkingDirectory=/opt/tggift-bot
+Environment=PYTHONPATH=/opt/tggift-bot
+ExecStart=/usr/bin/python3 /opt/tggift-bot/start_bot.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tggift-bot
+
+# Настройки безопасности
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/tggift-bot/data /opt/tggift-bot/logs
+
+# Ограничения ресурсов
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Graceful shutdown
+TimeoutStartSec=60
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target 

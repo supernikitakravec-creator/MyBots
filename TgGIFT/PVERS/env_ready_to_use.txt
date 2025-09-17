@@ -1,0 +1,130 @@
+# =============================================================================
+# TgGIFT Bot - Ready to Use Configuration
+# ПЕРЕИМЕНУЙТЕ ЭТОТ ФАЙЛ В .env И ЗАПОЛНИТЕ ВАШИ ДАННЫЕ
+# =============================================================================
+
+# =============================================================================
+# ОБЯЗАТЕЛЬНЫЕ НАСТРОЙКИ - ЗАПОЛНИТЕ ОБЯЗАТЕЛЬНО!
+# =============================================================================
+
+# Telegram Bot (получите у @BotFather)
+BOT_TOKEN=your_telegram_bot_token_here
+BOT_USERNAME=your_bot_username
+
+# Депозитный аккаунт (получите на my.telegram.org)
+DEPOSIT_ACCOUNT_1_API_ID=your_api_id_here
+DEPOSIT_ACCOUNT_1_API_HASH=your_api_hash_here
+DEPOSIT_ACCOUNT_1_PHONE=+your_phone_number_here
+
+# TON кошелек для приема платежей
+TON_WALLET_1_ADDRESS=your_ton_wallet_address_here
+
+# Безопасный пароль для PostgreSQL
+POSTGRES_PASSWORD=your_secure_database_password
+
+# =============================================================================
+# АВТОМАТИЧЕСКИЕ НАСТРОЙКИ - НЕ ИЗМЕНЯЙТЕ
+# =============================================================================
+
+# PostgreSQL Database
+USE_POSTGRES=true
+POSTGRES_HOST=tggift-postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=tggift
+POSTGRES_USER=tggift
+
+# Основные настройки
+LOG_LEVEL=INFO
+LOG_FILE=/app/logs/bot.log
+MONITORING_INTERVAL=60
+MAX_QUEUE_SIZE=1000
+NOTIFICATIONS_ENABLED=true
+HEALTH_CHECK_ENABLED=true
+ENABLE_RATE_LIMITING=true
+
+# Депозитный аккаунт - дополнительные настройки
+DEPOSIT_ACCOUNT_1_TON_WALLET=wallet_1
+DEPOSIT_ACCOUNT_1_NAME=Первый депозитный аккаунт
+DEPOSIT_ACCOUNT_1_ACTIVE=true
+DEPOSIT_ACCOUNT_1_MAX_PURCHASES=100
+
+# TON кошелек - дополнительные настройки
+TON_WALLET_1_NAME=Основной кошелек
+TON_WALLET_1_ACTIVE=true
+
+# =============================================================================
+# ОПЦИОНАЛЬНЫЕ НАСТРОЙКИ - ЗАПОЛНИТЕ ПО ЖЕЛАНИЮ
+# =============================================================================
+
+# YooKassa (если используете)
+# YOOKASSA_SHOP_ID=your_shop_id_here
+# YOOKASSA_SECRET_KEY=your_secret_key_here
+# YOOKASSA_TEST_MODE=false
+
+# Webhook (если используете)
+# WEBHOOK_URL=https://your-domain.com/webhook
+# WEBHOOK_SECRET=your_webhook_secret_token
+
+# Второй депозитный аккаунт (если нужен)
+# DEPOSIT_ACCOUNT_2_API_ID=your_second_api_id_here
+# DEPOSIT_ACCOUNT_2_API_HASH=your_second_api_hash_here
+# DEPOSIT_ACCOUNT_2_PHONE=+your_second_phone_number_here
+# DEPOSIT_ACCOUNT_2_TON_WALLET=wallet_2
+# DEPOSIT_ACCOUNT_2_NAME=Второй депозитный аккаунт
+# DEPOSIT_ACCOUNT_2_ACTIVE=false
+
+# Второй TON кошелек (резервный)
+# TON_WALLET_2_ADDRESS=your_backup_ton_wallet_address_here
+# TON_WALLET_2_NAME=Резервный кошелек
+# TON_WALLET_2_ACTIVE=false
+
+# =============================================================================
+# ПРОДАКШЕН НАСТРОЙКИ
+# =============================================================================
+
+# Безопасность
+RATE_LIMIT_REQUESTS_PER_MINUTE=60
+RATE_LIMIT_BURST_SIZE=5
+MAX_REQUESTS_PER_MINUTE=60
+
+# Мониторинг
+MONITORING_ENABLED=true
+GIFT_CHECK_INTERVAL=15
+MAX_NOTIFICATIONS_PER_HOUR=50
+NOTIFICATION_COOLDOWN=3600
+
+# Производительность
+MAX_BACKGROUND_TASKS=20
+TASK_TIMEOUT=300
+CONNECTION_POOL_SIZE=5
+ENABLE_CONNECTION_POOLING=true
+REQUEST_TIMEOUT=30
+MAX_CONCURRENT_CONNECTIONS=10
+
+# Настройки подарков
+MIN_GIFT_AMOUNT=1
+MAX_GIFT_AMOUNT=10000
+GIFT_FEE_PERCENT=5
+
+# VIP настройки
+VIP_PRICE_PER_DAY=10
+VIP_DISCOUNT_BULK=0.1
+
+# Реферальная система
+REFERRAL_BONUS_PERCENT=10
+MIN_REFERRAL_PAYOUT=100
+
+# Системные настройки
+ENVIRONMENT=production
+DEBUG=false
+TESTING=false
+TEST_MODE=false
+TZ=Europe/Moscow
+
+# =============================================================================
+# ИНСТРУКЦИИ
+# =============================================================================
+# 1. Переименуйте этот файл в .env
+# 2. Заполните все значения "your_*_here"
+# 3. Обязательно заполните секцию "ОБЯЗАТЕЛЬНЫЕ НАСТРОЙКИ"
+# 4. Запустите: docker-compose up -d 

@@ -1,0 +1,21 @@
+# PostgreSQL Database Configuration
+USE_POSTGRES=true
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=tggift_db
+POSTGRES_USER=tggift_user
+POSTGRES_PASSWORD=tggift_password_2024
+
+# Existing bot configuration - keep all your current settings from .env
+BOT_TOKEN=your_bot_token_here
+ADMIN_ID=your_admin_id_here
+
+# Payment settings
+YOOKASSA_SHOP_ID=your_shop_id
+YOOKASSA_SECRET_KEY=your_secret_key
+TON_WALLET_ADDRESS=your_ton_wallet
+
+# Other settings (copy from your existing .env file)
+# DEPOSIT_ACCOUNT_1_API_ID=...
+# DEPOSIT_ACCOUNT_1_API_HASH=...
+# etc. 

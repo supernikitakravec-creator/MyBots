@@ -1,0 +1,29 @@
+# Основные библиотеки для Telegram-бота
+python-telegram-bot==20.7
+python-dotenv==1.0.0
+
+# Парсинг и работа с веб-страницами
+requests==2.31.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+selenium==4.15.2
+
+# Работа с данными
+pandas==2.1.3
+numpy==1.25.2
+
+# Планировщик задач
+apscheduler==3.10.4
+
+# Логирование
+loguru==0.7.2
+
+# HTTP клиент для API
+httpx==0.25.2
+
+# Валидация данных
+pydantic==2.5.0
+
+# Асинхронность
+aiohttp==3.9.1
+asyncio-throttle==1.0.2 

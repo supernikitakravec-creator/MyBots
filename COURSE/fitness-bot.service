@@ -1,0 +1,22 @@
+[Unit]
+Description=Fitness Bot Telegram Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/FitnessBOT_Python
+ExecStart=/usr/bin/python3 /root/FitnessBOT_Python/bot.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/root/FitnessBOT_Python/bot.log
+StandardError=append:/root/FitnessBOT_Python/bot.log
+Environment=PYTHONPATH=/root/FitnessBOT_Python
+Environment=PYTHONUNBUFFERED=1
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target 
