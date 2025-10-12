@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="800" viewBox="0 0 900 700">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+    </marker>
+    <style>
+      .deskTop { fill:#dcdcff; stroke:#333; stroke-width:1.5; }
+      .deskLeg { fill:#bdbde6; }
+      .pc { fill:#ffe0cc; stroke:#333; stroke-width:1.5; }
+      .monitor5090 { fill:#c7f5d9; stroke:#2e7d32; stroke-width:1; }
+      .monitor6000 { fill:#cce5ff; stroke:#1e3a8a; stroke-width:1; }
+      .stand { fill:#666; }
+      .dim { stroke:#333; stroke-width:1; marker-start:url(#arrow); marker-end:url(#arrow); }
+      .dimText { font: 12px sans-serif; fill:#333; }
+      .label { font: 13px sans-serif; fill:#111; }
+      .legend { font: 12px sans-serif; fill:#111; }
+    </style>
+  </defs>
+
+  <text x="20" y="24" class="label">Фронтальный вид. Масштаб условный (подписи в мм).</text>
+
+  <!-- Desk front -->
+  <rect x="90" y="520" width="720" height="18" class="deskTop"/>
+  <rect x="110" y="538" width="18" height="110" class="deskLeg"/>
+  <rect x="772" y="538" width="18" height="110" class="deskLeg"/>
+  <text x="450" y="515" text-anchor="middle" class="label">Стол шириной 2400 мм, глубина 900 мм, высота 750 мм</text>
+
+  <!-- PC case on floor, right side -->
+  <rect x="820" y="498" width="56" height="120" class="pc"/>
+  <text x="848" y="490" class="label" text-anchor="middle">ПК корпус (высота ≈600 мм)</text>
+
+  <!-- Bottom row monitors: 27" - 34" - 27" -->
+  <!-- Stands -->
+  <rect x="170" y="500" width="60" height="8" class="stand"/>
+  <rect x="415" y="500" width="60" height="8" class="stand"/>
+  <rect x="660" y="500" width="60" height="8" class="stand"/>
+  <!-- Panels -->
+  <rect x="140" y="380" width="120" height="110" rx="6" class="monitor5090"/>
+  <rect x="380" y="360" width="120" height="130" rx="6" class="monitor6000"/>
+  <rect x="620" y="380" width="120" height="110" rx="6" class="monitor5090"/>
+
+  <!-- Top row monitors: 3×27" (arms) -->
+  <rect x="220" y="300" width="2" height="70" class="stand"/>
+  <rect x="220" y="300" width="120" height="5" class="stand"/>
+  <rect x="220" y="240" width="120" height="70" rx="6" class="monitor6000"/>
+
+  <rect x="390" y="300" width="2" height="70" class="stand"/>
+  <rect x="390" y="300" width="120" height="5" class="stand"/>
+  <rect x="390" y="240" width="120" height="70" rx="6" class="monitor6000"/>
+
+  <rect x="560" y="300" width="2" height="70" class="stand"/>
+  <rect x="560" y="300" width="120" height="5" class="stand"/>
+  <rect x="560" y="240" width="120" height="70" rx="6" class="monitor6000"/>
+
+  <!-- Dimension lines -->
+  <line x1="90" y1="560" x2="810" y2="560" class="dim"/>
+  <text x="450" y="575" class="dimText" text-anchor="middle">2400 мм (ширина стола)</text>
+
+  <line x1="70" y1="520" x2="70" y2="648" class="dim"/>
+  <text x="60" y="590" class="dimText" transform="rotate(-90 60,590)">750 мм (высота стола)</text>
+
+  <!-- Legend -->
+  <rect x="90" y="70" width="260" height="110" fill="#fff" stroke="#333" stroke-width="1"/>
+  <rect x="100" y="90" width="16" height="12" class="monitor5090"/>
+  <text x="122" y="100" class="legend">5090: 2× игровых монитора (нижний ряд, края)</text>
+  <rect x="100" y="112" width="16" height="12" class="monitor6000"/>
+  <text x="122" y="122" class="legend">6000: центр (34" UW) + верхний ряд 3×27"</text>
+  <rect x="100" y="134" width="16" height="12" class="pc"/>
+  <text x="122" y="144" class="legend">Корпус: 3×GPU (4090 headless)</text>
+</svg>
