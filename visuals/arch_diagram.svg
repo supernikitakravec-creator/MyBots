@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1100 800">
+  <defs>
+    <style>
+      .box { fill:#ffffff; stroke:#333; stroke-width:1.5; rx:8; }
+      .pc { fill:#e8f0fe; }
+      .server { fill:#e8f5e9; }
+      .nas { fill:#fff3e0; }
+      .switch { fill:#f3e5f5; }
+      .monitor { fill:#cce5ff; stroke:#1e3a8a; stroke-width:1; }
+      .gpu5090 { fill:#c7f5d9; stroke:#2e7d32; stroke-width:1; }
+      .gpu4090 { fill:#ffe0e0; stroke:#b71c1c; stroke-width:1; }
+      .gpu6000 { fill:#e0f2ff; stroke:#0d47a1; stroke-width:1; }
+      .link { stroke:#555; stroke-width:2; }
+      .link10 { stroke:#1565c0; stroke-width:2.5; }
+      .link25 { stroke:#2e7d32; stroke-width:3.5; }
+      .kbm { stroke:#ff8f00; stroke-width:2; stroke-dasharray:6 4; }
+      .text { font: 13px sans-serif; fill:#111; }
+      .small { font: 12px sans-serif; fill:#333; }
+      .title { font: 15px sans-serif; font-weight: 700; fill:#111; }
+      .legend { font: 12px sans-serif; fill:#111; }
+    </style>
+  </defs>
+
+  <text x="30" y="30" class="title">Схема архитектуры (вариант 2 корпуса + NAS, 10/25GbE)</text>
+
+  <!-- Switch -->
+  <rect x="470" y="360" width="160" height="70" class="box switch"/>
+  <text x="550" y="390" class="text" text-anchor="middle">Свитч 10/25GbE</text>
+  <text x="550" y="408" class="small" text-anchor="middle">12–24 портов; VLAN/LLDP</text>
+
+  <!-- Gaming PC -->
+  <rect x="80" y="150" width="260" height="160" class="box pc"/>
+  <text x="210" y="175" class="title" text-anchor="middle">Игровой ПК (Windows 11)</text>
+  <rect x="100" y="190" width="90" height="20" class="gpu5090"/>
+  <text x="145" y="205" class="small" text-anchor="middle">RTX 5090</text>
+  <rect x="200" y="190" width="120" height="20" class="gpu6000"/>
+  <text x="260" y="205" class="small" text-anchor="middle">RTX 6000 Ada</text>
+  <text x="210" y="230" class="small" text-anchor="middle">CPU: Ryzen 9 7950X3D / TR Pro</text>
+  <text x="210" y="248" class="small" text-anchor="middle">ОЗУ: 128–256 ГБ</text>
+  <text x="210" y="266" class="small" text-anchor="middle">Роли: игры/FG, IDE, медиа</text>
+
+  <!-- Compute Server -->
+  <rect x="760" y="120" width="260" height="190" class="box server"/>
+  <text x="890" y="145" class="title" text-anchor="middle">Сервер вычислений (Ubuntu/Proxmox)</text>
+  <rect x="780" y="160" width="110" height="20" class="gpu4090"/>
+  <text x="835" y="175" class="small" text-anchor="middle">RTX 4090</text>
+  <rect x="900" y="160" width="110" height="20" class="gpu6000"/>
+  <text x="955" y="175" class="small" text-anchor="middle">(опц.) RTX 6000</text>
+  <text x="890" y="202" class="small" text-anchor="middle">CPU: TR Pro 7985WX</text>
+  <text x="890" y="220" class="small" text-anchor="middle">ОЗУ: 256–512 ГБ ECC</text>
+  <text x="890" y="238" class="small" text-anchor="middle">Роли: тренинг/рендер headless</text>
+
+  <!-- NAS -->
+  <rect x="780" y="520" width="240" height="120" class="box nas"/>
+  <text x="900" y="545" class="title" text-anchor="middle">NAS/ZFS (TrueNAS)</text>
+  <text x="900" y="565" class="small" text-anchor="middle">CPU: Intel/AMD low‑power</text>
+  <text x="900" y="583" class="small" text-anchor="middle">Пулы: RAIDZ2/RAID10, SSD кэш</text>
+
+  <!-- Monitors cluster from Gaming PC and Workstation role -->
+  <rect x="60" y="410" width="300" height="200" class="box"/>
+  <text x="210" y="435" class="title" text-anchor="middle">Мониторы (6 шт.)</text>
+  <rect x="80" y="455" width="70" height="45" class="monitor"/>
+  <text x="115" y="485" class="small" text-anchor="middle">27" 5090</text>
+  <rect x="155" y="448" width="90" height="55" class="monitor"/>
+  <text x="200" y="480" class="small" text-anchor="middle">34" UW 6000</text>
+  <rect x="250" y="455" width="70" height="45" class="monitor"/>
+  <text x="285" y="485" class="small" text-anchor="middle">27" 5090</text>
+  <rect x="90" y="510" width="70" height="45" class="monitor"/>
+  <text x="125" y="540" class="small" text-anchor="middle">27" 6000</text>
+  <rect x="180" y="510" width="70" height="45" class="monitor"/>
+  <text x="215" y="540" class="small" text-anchor="middle">27" 6000</text>
+  <rect x="270" y="510" width="70" height="45" class="monitor"/>
+  <text x="305" y="540" class="small" text-anchor="middle">27" 6000</text>
+
+  <!-- Links -->
+  <line x1="340" y1="230" x2="470" y2="395" class="link10"/>
+  <text x="400" y="315" class="small" transform="rotate(35 400,315)">10GbE</text>
+
+  <line x1="760" y1="210" x2="630" y2="395" class="link25"/>
+  <text x="690" y="310" class="small" transform="rotate(-30 690,310)">25GbE</text>
+
+  <line x1="780" y1="580" x2="630" y2="430" class="link10"/>
+  <text x="710" y="505" class="small" transform="rotate(-35 710,505)">10GbE</text>
+
+  <line x1="210" y1="310" x2="210" y2="410" class="kbm"/>
+  <text x="220" y="370" class="small">USB KVM/Barrier</text>
+
+  <line x1="210" y1="310" x2="210" y2="410" class="link"/>
+  <text x="120" y="420" class="small">DP/HDMI → от 5090/6000</text>
+
+  <!-- Legend -->
+  <rect x="60" y="60" width="350" height="70" class="box"/>
+  <rect x="70" y="75" width="16" height="12" class="gpu5090"/>
+  <text x="92" y="85" class="legend">5090: игры, генерация кадров, стриминг</text>
+  <rect x="220" y="75" width="16" height="12" class="gpu4090"/>
+  <text x="242" y="85" class="legend">4090: тренинг/рендер headless</text>
+  <rect x="70" y="95" width="16" height="12" class="gpu6000"/>
+  <text x="92" y="105" class="legend">6000 Ada: IDE/графики/мониторы, большие сцены с ECC</text>
+
+</svg>
